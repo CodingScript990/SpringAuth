@@ -1,5 +1,6 @@
 package com.example.auth.config;
 
+import com.example.auth.jwt.JwtTokenFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,12 +13,20 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.security.web.authentication.AuthenticationFilter;
 
 // 버전 이전 : extends WebSecurityConfigurerAdapter
 // 버전 이후 : Builder -> Lambda 를 이용 DSL 기반 설정
 @Configuration
 // @EnableWebSecurity : 2.1버전 이후 SpringBoot Starter Security 에서는 필수 아님
 public class WebSecurityConfig {
+    private final JwtTokenFilter jwtTokenFilter;
+
+    public WebSecurityConfig(JwtTokenFilter jwtTokenFilter) {
+        this.jwtTokenFilter = jwtTokenFilter;
+    }
+
     // 설정으로 등록 작업
     // @Bean : 메서드의 결과를 BEAN 객체로 등록해주는 어노테이션을 말함
     @Bean  // 메소드의 결과를 Bean 객체로 등록해주는 어노테이션
@@ -29,7 +38,7 @@ public class WebSecurityConfig {
         http
                 // CSRF: Cross Site Request Forgery
                 .csrf(AbstractHttpConfigurer::disable)
-                // 1. requestMatchers를 통해 설정할 URL 지정
+                // 1. requestMatchers 를 통해 설정할 URL 지정
                 // 2. permitAll(), authenticated() 등을 통해 어떤 사용자가
                 //    접근 가능한지 설정
                 .authorizeHttpRequests(
@@ -41,20 +50,16 @@ public class WebSecurityConfig {
                                         "/token/issue"
                                 )
                                 .permitAll()
-                                .requestMatchers(
-                                        "/re-auth",
-                                        "/users/my-profile"
-                                )
-                                .authenticated()  // 인증이 된 사용자만 허가
-                                .requestMatchers(
-                                        "/",
-                                        "/users/register"
-                                )
-                                .anonymous()  // 인증이 되지 않은 사용자만 허가
+                                .anyRequest()
+                                .authenticated()
                 )
                 .sessionManagement(
                         sessionManagement -> sessionManagement
                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .addFilterBefore(
+                        jwtTokenFilter,
+                        AuthorizationFilter.class
                 );
 //                // form 을 이용한 로그인 관련 설정
 //                .formLogin(
@@ -78,7 +83,7 @@ public class WebSecurityConfig {
 //                        logout -> logout
 //                                // 로그아웃 요청을 보낼 URL
 //                                // 어떤 UI에 로그아웃 기능을 연결하고 싶으면
-//                                // 해당 UI가 /users/logout으로 POST 요청을
+//                                // 해당 UI가 /users/logout 으로 POST 요청을
 //                                // 보내게끔
 //                                .logoutUrl("/users/logout")
 //                                // 로그아웃 성공시 이동할 URL 설정
