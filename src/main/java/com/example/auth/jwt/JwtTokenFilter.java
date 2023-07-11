@@ -1,7 +1,6 @@
 package com.example.auth.jwt;
 
-import com.example.auth.service.CustomUserDetails;
-import jakarta.servlet.Filter;
+import com.example.auth.entity.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,46 +23,51 @@ import java.util.ArrayList;
 public class JwtTokenFilter extends OncePerRequestFilter {
     private final JwtTokenUtils jwtTokenUtils;
 
-    // Constructor
     public JwtTokenFilter(JwtTokenUtils jwtTokenUtils) {
         this.jwtTokenUtils = jwtTokenUtils;
     }
 
-    // doFilterInternal method
     @Override
     protected void doFilterInternal(
-            HttpServletRequest req,
-            HttpServletResponse res,
+            HttpServletRequest request,
+            HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
-        // JWT 가 포함되어 있으면 포함되어 있는 헤더를 요청
-        String authHeader = req.getHeader(HttpHeaders.AUTHORIZATION);
-        // authHeader 가 null 아니라면 "Bearer "로 구성되어 있어야 정상적인 인증 정보다
+        // JWT가 포함되어 있으면 포함되어 있는 헤더를 요청
+        String authHeader
+                = request.getHeader(HttpHeaders.AUTHORIZATION);
+        // authHeader가 null이 아니면서 "Bearer " 로 구성되어 있어야
+        // 정상적인 인증 정보다.
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            // JWT 를 회수하여 JWT 가 정상적인 JWT 인지 판단하는데,
+            // JWT를 회수하여 JWT가 정상적인 JWT인지를 판단한다.
             String token = authHeader.split(" ")[1];
             if (jwtTokenUtils.validate(token)) {
                 // 웹상의 많은 예시
-                // SecurityContextHolder.getContext().setAuthentication();
-                // Security 공식 문서 추천!
+//                SecurityContextHolder.getContext().setAuthentication();
+                // Security 공식 문서 추천
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
-                // JWT 에서 사용자 이름을 가져오기
-                String  username = jwtTokenUtils.parseClaims(token).getSubject();
-
-                // 일반적인 인증상태로도 사용됨
+                // JWT에서 사용자 이름을 가져오기
+                String username = jwtTokenUtils
+                        .parseClaims(token)
+                        .getSubject();
+                // 사용자 인증 정보 생성
                 AbstractAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                        CustomUserDetails.builder().username(username).build(),
+                        CustomUserDetails.builder()
+                                .username(username)
+                                .build(),
                         token, new ArrayList<>()
                 );
-                // SecurityContext 에 사용자 정보 설정
+                // SecurityContext에 사용자 정보 설정
                 context.setAuthentication(authenticationToken);
-                // SecurityContextHolder 에 SecurityContext 설정
+                // SecurityContextHolder에 SecurityContext 설정
                 SecurityContextHolder.setContext(context);
                 log.info("set security context with jwt");
             }
-            // 아니라면 log.warn 을 통해 알림
-            else log.warn("jwt validation failed");
+            // 아니라면 log.warn을 통해 알린다.
+            else {
+                log.warn("jwt validation failed");
+            }
         }
-        filterChain.doFilter(req, res);
+        filterChain.doFilter(request, response);
     }
 }

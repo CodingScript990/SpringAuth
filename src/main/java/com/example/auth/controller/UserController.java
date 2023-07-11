@@ -3,8 +3,6 @@ package com.example.auth.controller;
 import com.example.auth.service.CustomUserDetails;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Controller;
@@ -25,7 +23,7 @@ public class UserController {
     // 로그인 페이지를 위한 GetMapping
     @GetMapping("/login")
     public String loginForm() {
-        return "login-form";
+        return "login";
     }
 
     // 로그인 성공 후 로그인 여부를 판단하기 위한 GetMapping

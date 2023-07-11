@@ -3,16 +3,14 @@ package com.example.auth.controller;
 import com.example.auth.dto.JwtRequestDto;
 import com.example.auth.dto.JwtTokenDto;
 import com.example.auth.jwt.JwtTokenUtils;
+import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.UserDetailsManager;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @Slf4j
@@ -62,5 +60,11 @@ public class TokenController {
     public String checkSecure() {
         log.info(SecurityContextHolder.getContext().getAuthentication().getName());
         return "success";
+    }
+
+    // val method
+    @GetMapping("/val")
+    public Claims val(@RequestParam("token") String jwt) {
+        return jwtTokenUtils.parseClaims(jwt);
     }
 }

@@ -1,10 +1,8 @@
 package com.example.auth.jwt;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -53,7 +51,7 @@ public class JwtTokenUtils {
     }
 
     // JWT 인자로 받고, 그 JWT 를 해석해서 사용자 정보를 회수하는 메서드
-    public Claims parseClaims(String  token) {
+    public Claims parseClaims(String token) {
         return jwtParser.parseClaimsJws(token).getBody();
     }
 
@@ -65,7 +63,7 @@ public class JwtTokenUtils {
                 // 사용자 정보 등록
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(Date.from(Instant.now()))
-                .setExpiration(Date.from(Instant.now().plusSeconds(1600)));
+                .setExpiration(Date.from(Instant.now().plusSeconds(3600)));
 
         // 추가 정보를 담을수도 있음
         // jwtClaims.put("eml", ((CustomUserDetails) userDetails).getEmail());
